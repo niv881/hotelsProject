@@ -99,7 +99,6 @@ public class HotelManagementImpl implements HotelManagement {
             List<RoomResponseDto> rooms = roomE.stream().map(
                     room -> modelMapper.map(room,RoomResponseDto.class)
             ).toList();
-
             //TODO : return something else!
             return HotelManagementResponseDto.builder()
                     .hotel(hotel)
@@ -146,10 +145,8 @@ public class HotelManagementImpl implements HotelManagement {
 //    HELPER METHODS :
 
     private boolean checkIfHotelExists(String hotelName) {
-        hotelRepository.findHotelByNameIgnoreCase(hotelName).orElseThrow(
-                () -> new BadRequestException(hotelName)
-        );
-        return true;
+       return hotelRepository.findHotelByNameIgnoreCase(hotelName).isPresent();
+
     }
 
     private HotelResponseDto checkFieldAndUpdateHotelResponse(HotelsRequestDto hotelReq, Hotel hotel) {
