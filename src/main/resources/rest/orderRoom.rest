@@ -1,0 +1,11 @@
+### order Room From a Hotel
+POST http://localhost:8080/api/p1/order
+Content-Type: application/json
+
+{
+  "hotelName": "HavaNagila",
+  "roomType": "garden view",
+  "roomCapacity": 1,
+  "checkIn": "23/07/2023",
+  "checkOut": "28/07/2023"
+}

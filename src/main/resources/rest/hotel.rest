@@ -1,0 +1,67 @@
+### post hotel and get him without Address
+POST localhost:8080/api/p1/hotels
+Content-Type: application/json
+
+{
+  "name": "firstHotel",
+  "email": "firstHotel@gmail.com",
+  "about": "this is nice hotel",
+  "phoneNumber": "1-700-21-5564-454"
+}
+### get hotel details by hotel name
+GET localhost:8080/api/p1/hotels_management/hotel_name?hotel_name =Brown Lighthouse Eilat, a member of Brown Hotels
+
+### get hotel details by hotel name
+GET localhost:8080/api/p1/hotels_details?hotel_city=Eilat
+
+### post Hotel with all
+POST localhost:8080/api/p1/hotels_details/craete
+Content-Type: application/json
+
+//{
+//  "hotel": {
+//    "name": "Brown Lighthouse Eilat, a member of Brown Hotels",
+//    "about": "Featuring a sun terrace, a swimming pool for adults as well as a kids' pool and a children's club, Brown Lighthouse Eilat, a member of Brown Hotels is located in the center of Eilat, 10 minutes' walk from the beach and from the shopping center.
+//
+//    Rooms here are all spacious and include a LED TV, air conditioning, and a mini fridge. The private bathroom has a hairdryer. WiFi is free throughout.
+//
+//    A rich Israeli breakfast is available each morning.
+//
+//    Mall Hayam Eilat shopping center is 2789 feet from the property",
+//    "email": "service@astralhotels.co.il",
+//    "phoneNumber": "08-6306666"
+//  },
+//  "address": {
+//    "street": "Antib Road, North Shore",
+//    "country": "Israel",
+//    "city": "Eilat",
+//    "streetNumber": "8"
+//  },
+//  "rooms": [
+//    {
+//      "type": "Deluxe Room with a French Balcony",
+//      "price": 3476,
+//      "capacity": 5
+//    },
+//    {
+//      "type": "Deluxe Double or Twin Room with Sea View",
+//      "price": 3582,
+//      "capacity": 4
+//    },
+//    {
+//      "type": "Deluxe Sea View with a French Balcony",
+//      "price": 3846,
+//      "capacity": 5
+//    },
+//    {
+//      "type": "Junior Deluxe Suite",
+//      "price":  4110,
+//      "capacity": 7
+//    },
+//    {
+//      "type": "Deluxe Family Suite (2 Adults + 3 Children)",
+//      "price":6863 ,
+//      "capacity":2
+//    }
+//  ]
+//}
