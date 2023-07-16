@@ -5,6 +5,7 @@ import dev.nhason.entity.Address;
 import dev.nhason.entity.Hotel;
 import dev.nhason.entity.ImageData;
 import dev.nhason.entity.Room;
+import dev.nhason.error.BadRequestException;
 import dev.nhason.repository.AddressRepository;
 import dev.nhason.repository.HotelRepository;
 import dev.nhason.repository.ImageDataRepository;
@@ -98,7 +99,7 @@ public class HotelManagementImpl implements HotelManagement {
             return true;
         }else {
             //TODO : message if hotel Already Exists;
-            throw new RuntimeException();
+            throw new BadRequestException(dto.getHotel().getName());
         }
 
     }
@@ -137,7 +138,10 @@ public class HotelManagementImpl implements HotelManagement {
 //    HELPER METHODS :
 
     private boolean checkIfHotelExists(String hotelName) {
-        return hotelRepository.findHotelByNameIgnoreCase(hotelName).isPresent();
+        hotelRepository.findHotelByNameIgnoreCase(hotelName).orElseThrow(
+                () -> new BadRequestException(hotelName)
+        );
+        return true;
     }
 
     private HotelResponseDto checkFieldAndUpdateHotelResponse(HotelsRequestDto hotelReq, Hotel hotel) {
