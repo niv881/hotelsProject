@@ -21,4 +21,14 @@ public class HotelExceptionHandler {
         return problemDetail;
     }
 
+    @ExceptionHandler(NotFoundException.class)
+    public ProblemDetail handleNotFoundException(NotFoundException e){
+        var problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND,e.getMessage());
+
+        problemDetail.setProperty("fieldName",e.getResourceName());
+        problemDetail.setProperty("timestamp", LocalDateTime.now());
+
+        return problemDetail;
+    }
+
 }

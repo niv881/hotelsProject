@@ -6,6 +6,7 @@ import dev.nhason.entity.Hotel;
 import dev.nhason.entity.ImageData;
 import dev.nhason.entity.Room;
 import dev.nhason.error.BadRequestException;
+import dev.nhason.error.NotFoundException;
 import dev.nhason.repository.AddressRepository;
 import dev.nhason.repository.HotelRepository;
 import dev.nhason.repository.ImageDataRepository;
@@ -29,15 +30,13 @@ public class HotelManagementImpl implements HotelManagement {
     @Override
     public HotelManagementDto getHotelDetailsByHotelName(String hotelName) {
         Hotel hotelE = hotelRepository.findHotelByNameIgnoreCase(hotelName).orElseThrow(
-                //TODO: message if don't find the hotel
-                RuntimeException::new
+                ()-> new BadRequestException(hotelName)
         );
         HotelResponseDto hotel = modelMapper.map(hotelE,HotelResponseDto.class);
         Address addressE = addressRepository.findAddressByHotel_Name(hotelName);
         AddressResponseDto address = modelMapper.map(addressE,AddressResponseDto.class);
         List<Room> roomsE = roomRepository.findRoomsByHotel_Name(hotelName).orElseThrow(
-                //TODO: message if don't find the room
-                RuntimeException::new
+                ()->new NotFoundException(hotel.getName(),"no found Room for this hotel")
         );
         List<RoomResponseDto> rooms = roomsE
                 .stream()
@@ -60,8 +59,7 @@ public class HotelManagementImpl implements HotelManagement {
         List<HotelManagementDto> some = hotelE.stream().map(
                 hotel -> {
                     List<Room> roomsE = roomRepository.findRoomsByHotel_Name(hotel.getName()).orElseThrow(
-                            //TODO: message if don't find the room
-                            RuntimeException::new
+                            ()->new NotFoundException(hotel.getName(),"no found Room for this hotel")
                     );
 
                     List<RoomResponseDto> rooms = roomsE
@@ -98,7 +96,6 @@ public class HotelManagementImpl implements HotelManagement {
             //TODO : return something else!
             return true;
         }else {
-            //TODO : message if hotel Already Exists;
             throw new BadRequestException(dto.getHotel().getName());
         }
 
@@ -122,7 +119,7 @@ public class HotelManagementImpl implements HotelManagement {
     public RoomResponseDto updateHotelRoom(RoomRequestDto dto, String hotelName) {
         if (checkIfHotelExists(hotelName)){
             Room room = roomRepository.findRoomByTypeAndHotel_Name(dto.getType(),hotelName).orElseThrow(
-
+                    ()->new BadRequestException(dto.getType())
             );
 
             room.setPrice(dto.getPrice());
@@ -130,7 +127,7 @@ public class HotelManagementImpl implements HotelManagement {
             var saved = roomRepository.save(room);
             return modelMapper.map(saved,RoomResponseDto.class);
         }else {
-            throw new RuntimeException("no resource found !");
+            throw new NotFoundException(hotelName,"no found Room for this hotel");
         }
     }
 
