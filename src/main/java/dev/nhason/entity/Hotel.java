@@ -3,9 +3,9 @@ package dev.nhason.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-
-
+import java.util.List;
 import java.util.Set;
+
 
 @Getter
 @Setter
@@ -34,9 +34,9 @@ public class Hotel {
     @JoinColumn(name = "room_id",referencedColumnName = "id")
     private Set<Room> rooms;
 
-    @OneToOne
+    @OneToMany
     @JoinColumn(name = "order_id",referencedColumnName = "id")
-    private OrderRoom order;
+    private List<OrderRoom> order;
 
     @OneToMany
     private Set<ImageData> imageData;

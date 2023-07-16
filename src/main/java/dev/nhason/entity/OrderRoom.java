@@ -1,12 +1,10 @@
 package dev.nhason.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
-
-import java.time.LocalDate;
+import org.springframework.format.annotation.DateTimeFormat;
+import java.sql.Date;
 
 @Getter
 @Setter
@@ -20,13 +18,22 @@ public class OrderRoom {
     @GeneratedValue
     private Long id;
 
-    private LocalDate checkIn;
-    private LocalDate checkOut;
+    @Temporal(TemporalType.DATE)
+    @DateTimeFormat(pattern="dd/MM/yyyy")
+    private Date checkIn;
+    @Temporal(TemporalType.DATE)
+    @DateTimeFormat(pattern="dd/MM/yyyy")
+    private Date checkOut;
 
-    @OneToOne(mappedBy = "order")
+    @NotNull
+    private Integer roomCapacity;
+
+    @ManyToOne
+    @JoinColumn(name = "hotel_id",referencedColumnName = "id")
     private Hotel hotel;
 
-    @OneToOne(mappedBy = "order")
+    @ManyToOne
+    @JoinColumn(name = "room_id",referencedColumnName = "id")
     private Room room;
 
 

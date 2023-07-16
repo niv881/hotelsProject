@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.util.List;
+
 
 @Getter
 @Setter
@@ -28,9 +30,9 @@ public class Room {
     @JoinColumn(name = "hotel_id",referencedColumnName = "id")
     private Hotel hotel;
 
-    @OneToOne
+    @OneToMany
     @JoinColumn(name = "order_id",referencedColumnName = "id")
-    private OrderRoom order;
+    private List<OrderRoom> order;
 
 
 }

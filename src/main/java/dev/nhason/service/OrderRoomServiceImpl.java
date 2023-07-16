@@ -4,16 +4,17 @@ import dev.nhason.dto.HotelResponseDto;
 import dev.nhason.dto.OrderRoomRequest;
 import dev.nhason.dto.OrderRoomResponse;
 import dev.nhason.dto.RoomResponseDto;
+import dev.nhason.entity.Hotel;
 import dev.nhason.entity.OrderRoom;
+import dev.nhason.entity.Room;
+import dev.nhason.error.BadRequestException;
+import dev.nhason.error.NotFoundException;
 import dev.nhason.repository.HotelRepository;
 import dev.nhason.repository.OrderRoomRepository;
 import dev.nhason.repository.RoomRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
@@ -24,53 +25,74 @@ public class OrderRoomServiceImpl implements OrderRoomService {
     private final ModelMapper modelMapper;
 
     @Override
-    public OrderRoomResponse createOrder(OrderRoomRequest dto){
+    public OrderRoomResponse createOrder(OrderRoomRequest dto) {
         var hotelE = hotelRepository.findHotelByNameIgnoreCase(dto.getHotelName()).orElseThrow(
-                //TODO : message if dont find the hotel
-                RuntimeException::new
+                () -> new BadRequestException(dto.getHotelName())
         );
-        var roomsE = roomRepository.findRoomsByHotel_Id(hotelE.getId()).orElseThrow(
-                //TODO : message if dont find the room in the hotel
-                RuntimeException::new
+        var roomsE = roomRepository.findRoomsByHotel_Name(dto.getHotelName()).orElseThrow(
+                () -> new BadRequestException(dto.getHotelName(), "No rooms for this hotel!")
         );
         var roomC = roomsE.
                 stream()
                 .filter(room -> dto.getRoomType().equals(room.getType()))
                 .findAny()
                 .orElseThrow(
-                //TODO : message if dont find the room
-                        RuntimeException::new);
+                        () -> new NotFoundException(dto.getRoomType(), "this type of room doesn't found"));
 
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-            var checkIn = dto.getCheckIn();
-            LocalDate localDateCheckIn = LocalDate.parse(checkIn,formatter);
-            var checkOut = dto.getCheckOut();
-            LocalDate localDateCheckOut = LocalDate.parse(checkOut,formatter);
+        if (roomC.getCapacity() > 0) {
+            makeOrder(dto, hotelE, roomC);
+            updateCapacity( dto, roomC);
+            System.out.println(roomC.getCapacity() + " " + dto.getRoomCapacity());
 
-
-
-
-            var orderE = OrderRoom.builder()
-                    .checkIn(localDateCheckIn)
-                    .checkOut(localDateCheckOut)
-                    .hotel(hotelE)
-                    .room(roomC)
-                    .build();
-            orderRoomRepository.save(orderE);
-
-            roomC.setCapacity(roomC.getCapacity()-dto.getRoomCapacity());
+            roomC.setCapacity(roomC.getCapacity() - dto.getRoomCapacity());
             roomRepository.save(roomC);
 
             var hotel = modelMapper.map(hotelE, HotelResponseDto.class);
             var room = modelMapper.map(roomC, RoomResponseDto.class);
 
 
-
             return OrderRoomResponse.builder()
-                    .checkIn(localDateCheckIn)
-                    .checkOut(localDateCheckOut)
+                    .checkIn(dto.getCheckIn())
+                    .checkOut(dto.getCheckOut())
                     .hotel(hotel)
                     .room(room)
+                    .roomCapacity(dto.getRoomCapacity())
                     .build();
+        } else {
+            throw new BadRequestException(dto.getRoomType(),"sorry this room type is no available. " +
+                    "we have another room that waiting for you!");
+        }
     }
+
+
+    //helper Methods :
+    private void updateCapacity(OrderRoomRequest dto, Room roomC) {
+            roomC.setCapacity(roomC.getCapacity() - dto.getRoomCapacity());
+            roomRepository.save(roomC);
+    }
+
+    private void makeOrder(OrderRoomRequest dto, Hotel hotelE, Room roomC) {
+        var orderE = OrderRoom.builder()
+                .checkIn(dto.getCheckIn())
+                .checkOut(dto.getCheckOut())
+                .hotel(hotelE)
+                .room(roomC)
+                .roomCapacity(dto.getRoomCapacity())
+                .build();
+        orderRoomRepository.save(orderE);
+
+        var ordersFromHotel = hotelE.getOrder();
+        ordersFromHotel.add(orderE);
+        hotelE.setOrder(ordersFromHotel);
+        hotelRepository.save(hotelE);
+
+        var ordersFromRoom = roomC.getOrder();
+        ordersFromRoom.add(orderE);
+        roomC.setOrder(ordersFromRoom);
+        roomRepository.save(roomC);
+
+
+    }
+
+
 }

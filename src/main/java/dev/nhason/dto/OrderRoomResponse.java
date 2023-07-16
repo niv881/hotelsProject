@@ -4,17 +4,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.sql.Date;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class OrderRoomResponse {
-    private LocalDate checkIn;
-    private LocalDate checkOut;
+    private Date checkIn;
+    private Date checkOut;
+    private int roomCapacity;
     private HotelResponseDto hotel;
     private RoomResponseDto room;
 }

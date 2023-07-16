@@ -5,16 +5,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.sql.Date;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class OrderRoomRequest {
 
-    private String checkIn;
-    private String checkOut;
+    private Date checkIn;
+    private Date checkOut;
     private String hotelName;
     private String roomType;
     private int roomCapacity;
-
 }
