@@ -11,7 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class HotelManagementDto {
+public class HotelManagementResponseDto {
     private HotelResponseDto hotel;
     private AddressResponseDto address;
     private List<RoomResponseDto> rooms;

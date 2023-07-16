@@ -3,11 +3,11 @@ package dev.nhason.service;
 import dev.nhason.dto.*;
 
 public interface HotelManagement {
-    HotelManagementDto getHotelDetailsByHotelName(String hotelName);
+    HotelManagementResponseDto getHotelDetailsByHotelName(String hotelName);
 
-    HotelsManagementResponseDto getHotelDetailsByHotelAddress(String hotelCountry, String hotelCity);
+    AllHotelsManagementResponseDto getHotelDetailsByHotelAddress(String hotelCountry, String hotelCity);
 
-    Boolean createHotel(HotelManagementRequestDto dto);
+    HotelManagementResponseDto createHotel(HotelManagementRequestDto dto);
 
     HotelResponseDto updateHotelDetails(HotelsRequestDto dto);
 

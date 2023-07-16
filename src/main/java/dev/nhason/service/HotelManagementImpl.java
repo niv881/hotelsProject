@@ -28,7 +28,7 @@ public class HotelManagementImpl implements HotelManagement {
 
 //    GET METHODS :
     @Override
-    public HotelManagementDto getHotelDetailsByHotelName(String hotelName) {
+    public HotelManagementResponseDto getHotelDetailsByHotelName(String hotelName) {
         Hotel hotelE = hotelRepository.findHotelByNameIgnoreCase(hotelName).orElseThrow(
                 ()-> new BadRequestException(hotelName)
         );
@@ -44,7 +44,7 @@ public class HotelManagementImpl implements HotelManagement {
 
         List<ImageData> hotelImage = imageDataRepository.findImageDataByHotel_NameIgnoreCase(hotelName);
 
-        return HotelManagementDto.builder()
+        return HotelManagementResponseDto.builder()
                 .hotel(hotel)
                 .address(address)
                 .rooms(rooms)
@@ -53,10 +53,10 @@ public class HotelManagementImpl implements HotelManagement {
     }
 
     @Override
-    public HotelsManagementResponseDto getHotelDetailsByHotelAddress(String hotelCountry, String hotelCity) {
+    public AllHotelsManagementResponseDto getHotelDetailsByHotelAddress(String hotelCountry, String hotelCity) {
         List<Hotel> hotelE = hotelRepository.findAllByAddress_CountryOrAddress_City(hotelCountry, hotelCity);
 
-        List<HotelManagementDto> some = hotelE.stream().map(
+        List<HotelManagementResponseDto> some = hotelE.stream().map(
                 hotel -> {
                     List<Room> roomsE = roomRepository.findRoomsByHotel_Name(hotel.getName()).orElseThrow(
                             ()->new NotFoundException(hotel.getName(),"no found Room for this hotel")
@@ -66,14 +66,14 @@ public class HotelManagementImpl implements HotelManagement {
                             .stream()
                             .map(room -> modelMapper.map(room,RoomResponseDto.class)).toList();
 
-                    return HotelManagementDto.builder()
+                    return HotelManagementResponseDto.builder()
                           .hotel(modelMapper.map(hotel, HotelResponseDto.class))
                           .address(modelMapper.map(hotel.getAddress(), AddressResponseDto.class))
                           .rooms(rooms)
                           .build();
                 }).toList();
 
-        return HotelsManagementResponseDto.builder()
+        return AllHotelsManagementResponseDto.builder()
                 .hotels(some)
                 .build();
     }
@@ -81,7 +81,7 @@ public class HotelManagementImpl implements HotelManagement {
 //    POST METHODS :
 
     @Override
-    public Boolean createHotel(HotelManagementRequestDto dto) {
+    public HotelManagementResponseDto createHotel(HotelManagementRequestDto dto) {
         if (!checkIfHotelExists(dto.getHotel().getName())){
             var hotelE = modelMapper.map(dto.getHotel(),Hotel.class);
             var hotelS = hotelRepository.save(hotelE);
@@ -93,8 +93,19 @@ public class HotelManagementImpl implements HotelManagement {
                     .map(room -> modelMapper.map(room, Room.class)).toList();
             roomE.forEach(room -> room.setHotel(hotelS));
             roomRepository.saveAll(roomE);
+
+            var hotel = modelMapper.map(hotelS,HotelResponseDto.class);
+            var address = modelMapper.map(addressS,AddressResponseDto.class);
+            List<RoomResponseDto> rooms = roomE.stream().map(
+                    room -> modelMapper.map(room,RoomResponseDto.class)
+            ).toList();
+
             //TODO : return something else!
-            return true;
+            return HotelManagementResponseDto.builder()
+                    .hotel(hotel)
+                    .address(address)
+                    .rooms(rooms)
+                    .build();
         }else {
             throw new BadRequestException(dto.getHotel().getName());
         }
