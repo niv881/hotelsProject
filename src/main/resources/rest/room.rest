@@ -1,9 +1,0 @@
-### add to hotel a room
-POST localhost:8080/api/p1/hotels/1/room
-Content-Type: application/json
-
-{
-  "number": 50,
-  "price": 200,
-  "type": "pool view"
-}
