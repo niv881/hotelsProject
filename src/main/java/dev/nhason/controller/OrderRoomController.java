@@ -4,6 +4,7 @@ package dev.nhason.controller;
 import dev.nhason.dto.OrderRoomRequest;
 import dev.nhason.dto.OrderRoomResponse;
 import dev.nhason.service.OrderRoomService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,7 +21,7 @@ public class OrderRoomController {
     private final OrderRoomService orderRoomService;
 
     @PostMapping()
-    public ResponseEntity<OrderRoomResponse> giveHotelAddress(@RequestBody OrderRoomRequest dto,
+    public ResponseEntity<OrderRoomResponse> getOrderFromUser(@RequestBody @Valid OrderRoomRequest dto,
                                                               UriComponentsBuilder uriBuilder){
         var saved = orderRoomService.createOrder(dto);
         var uri = uriBuilder

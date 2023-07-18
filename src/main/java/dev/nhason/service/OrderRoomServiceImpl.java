@@ -16,6 +16,10 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
 @Service
 @RequiredArgsConstructor
 public class OrderRoomServiceImpl implements OrderRoomService {
@@ -29,7 +33,8 @@ public class OrderRoomServiceImpl implements OrderRoomService {
         var hotelE = hotelRepository.findHotelByNameIgnoreCase(dto.getHotelName()).orElseThrow(
                 () -> new BadRequestException(dto.getHotelName())
         );
-        var roomsE = roomRepository.findRoomsByHotel_Name(dto.getHotelName()).orElseThrow(
+        var roomsE = roomRepository.
+                findRoomsByHotel_Name(dto.getHotelName()).orElseThrow(
                 () -> new BadRequestException(dto.getHotelName(), "No rooms for this hotel!")
         );
         var roomC = roomsE.
@@ -39,12 +44,20 @@ public class OrderRoomServiceImpl implements OrderRoomService {
                 .orElseThrow(
                         () -> new NotFoundException(dto.getRoomType(), "this type of room doesn't found"));
 
+        String CheckIn = dto.getCheckIn().toString();
+        String dateFormat = "yyyy-MM-dd";
+
+        if(isDatePast(CheckIn,dateFormat)){
+            throw new BadRequestException(dto.getCheckIn().toString(), "The CheckIn Date is passed .. ");
+        }
+
+
+
+
         if (roomC.getCapacity() > 0) {
             makeOrder(dto, hotelE, roomC);
             updateCapacity( dto, roomC);
-            System.out.println(roomC.getCapacity() + " " + dto.getRoomCapacity());
 
-            roomC.setCapacity(roomC.getCapacity() - dto.getRoomCapacity());
             roomRepository.save(roomC);
 
             var hotel = modelMapper.map(hotelE, HotelResponseDto.class);
@@ -62,6 +75,14 @@ public class OrderRoomServiceImpl implements OrderRoomService {
             throw new BadRequestException(dto.getRoomType(),"sorry this room type is no available. " +
                     "we have another room that waiting for you!");
         }
+    }
+
+    private boolean isDatePast(String date,String dataFormat){
+        LocalDate localDate = LocalDate.now(ZoneId.systemDefault());
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern(dataFormat);
+        LocalDate inputDate = LocalDate.parse(date,dtf);
+
+        return inputDate.isBefore(localDate);
     }
 
 
@@ -90,8 +111,6 @@ public class OrderRoomServiceImpl implements OrderRoomService {
         ordersFromRoom.add(orderE);
         roomC.setOrder(ordersFromRoom);
         roomRepository.save(roomC);
-
-
     }
 
 
