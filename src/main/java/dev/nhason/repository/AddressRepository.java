@@ -8,6 +8,5 @@ import java.util.Optional;
 
 public interface AddressRepository extends JpaRepository<Address,Long> {
         Address findAddressByHotel_Name(String name);
-        List<Address> findAllByHotel_NameIgnoreCase(String name);
-        Address findAddressByHotel_NameIgnoreCase(String name);
+        Optional<Address> findAddressByCity(String city);
 }
