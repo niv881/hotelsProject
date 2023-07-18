@@ -2,30 +2,28 @@ package dev.nhason.controller;
 
 import dev.nhason.dto.*;
 import dev.nhason.service.HotelManagement;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @RestController
-@RequestMapping("api/p1/hotels_management")
+@RequestMapping("/hotels_management")
 @RequiredArgsConstructor
 public class HotelDetailsController {
     private final HotelManagement hotelManagement;
 
-    @GetMapping("/hotel_name")
-    public ResponseEntity<HotelManagementResponseDto> getDetailsByHotelName(@RequestParam (value = "hotel_name") String name){
-        return ResponseEntity.ok(hotelManagement.getHotelDetailsByHotelName(name));
-    }
-
-    @GetMapping("/hotel_address")
+    @GetMapping
     public ResponseEntity<AllHotelsManagementResponseDto> getDetailsByHotelAddress(@RequestParam (required = false,defaultValue = "", value = "hotel_country") String hotelCountry,
                                                                                    @RequestParam (required = false,defaultValue = "",value = "hotel_city") String hotelCity){
         return ResponseEntity.ok(hotelManagement.getHotelDetailsByHotelAddress(hotelCountry,hotelCity));
     }
 
-    @PostMapping("/craete")
-    public ResponseEntity<HotelManagementResponseDto> addHotelToDataBase(@RequestBody HotelManagementRequestDto dto
+    //TODO : extract HotelManagement for Validation : atk HotelRequest, AddressRequest...
+    @PostMapping("/create_new_hotel")
+    public ResponseEntity<HotelManagementResponseDto> addHotelToDataBase(@RequestBody @Valid HotelManagementRequestDto dto
     , UriComponentsBuilder uriBuilder){
         var saved = hotelManagement.createHotel(dto);
         var uri = uriBuilder.path("/api/v1/create").buildAndExpand(saved).toUri();
