@@ -8,6 +8,5 @@ import java.util.List;
 public interface ImageHotelService {
     ImageUploadResponse uploadImage(MultipartFile file, String hotelName);
     ImageData getInfoByImageByName(String name);
-    byte[] getImage(String name);
     List<byte[]> getAllHotelImages(String name);
 }

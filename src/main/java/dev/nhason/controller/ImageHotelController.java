@@ -3,18 +3,18 @@ package dev.nhason.controller;
 import dev.nhason.dto.ImageUploadResponse;
 import dev.nhason.entity.ImageData;
 import dev.nhason.service.ImageHotelService;
+import dev.nhason.utils.ImageInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/hotel_Image")
@@ -27,10 +27,8 @@ public class ImageHotelController {
     public ResponseEntity<ImageUploadResponse> uploadImage(@RequestParam(value = "hotel_name") String hotelName
             , @RequestParam(value = "image") MultipartFile[] files
     , UriComponentsBuilder uriBuilder)  {
-
         String message = "";
         var uri = uriBuilder.path("/image/upload").buildAndExpand(files).toUri();
-
         try{
             List<String> filesName = new ArrayList<>();
             Arrays.asList(files)
@@ -50,27 +48,15 @@ public class ImageHotelController {
     @GetMapping("/info/{name}")
     public ResponseEntity<?>  getImageInfoByName(@PathVariable("name") String name){
         ImageData image = imageHotelService.getInfoByImageByName(name);
-
         return ResponseEntity.status(HttpStatus.OK)
                 .body(image);
     }
-
     @GetMapping("/{name}")
-    public ResponseEntity<byte[]> getImageByName(@PathVariable("name") String name){
-        byte[] image = imageHotelService.getImage(name);
-
-        return ResponseEntity.status(HttpStatus.OK)
-                .contentType(MediaType.valueOf("image/png"))
-                .body(image);
+    public ResponseEntity<List<ImageInfo>> getImagesByHotelName(@PathVariable("name") String name){
+       List<ImageInfo> images = imageHotelService.getAllHotelImages(name).stream().map(img -> {
+           byte[] image = img.clone();
+           return new ImageInfo(image);
+        }).collect(Collectors.toList());
+       return ResponseEntity.ok(images);
     }
-
-//    @GetMapping("/{name}")
-//    public ResponseEntity<?>  getAllHotelImages(@PathVariable("name") String name){
-//        List<byte[]> image = imageHotelService.getAllHotelImages(name);
-//
-//        return ResponseEntity.status(HttpStatus.OK)
-//                .contentType(MediaType.valueOf("image/png"))
-//                .body(image.stream().findAny().orElseThrow());
-//    }
-
 }

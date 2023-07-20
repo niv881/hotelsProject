@@ -49,13 +49,6 @@ public class ImageHotelServiceImpl implements ImageHotelService {
     }
 
     @Override
-    public byte[] getImage(String name) {
-        Optional<ImageData> dbImage = imageDataRepository.findByName(name);
-        byte[] image = ImageUtil.decompressImage(dbImage.get().getImageData());
-        return image;
-    }
-
-    @Override
     public List<byte[]> getAllHotelImages(String name) {
         List<ImageData> dbImage = imageDataRepository.findAllByHotel_NameIgnoreCase(name);
         List<byte[]> hotelImage = dbImage
