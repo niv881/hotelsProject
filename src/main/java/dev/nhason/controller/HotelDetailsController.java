@@ -5,6 +5,7 @@ import dev.nhason.service.HotelManagement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -14,7 +15,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class HotelDetailsController {
     private final HotelManagement hotelManagement;
 
-    @GetMapping
+    @GetMapping("/address")
     public ResponseEntity<AllHotelsManagementResponseDto> getDetailsByHotelAddress(
             @RequestParam (required = false,defaultValue = "", value = "hotel_country") String hotelCountry,
              @RequestParam (required = false,defaultValue = "",value = "hotel_city") String hotelCity){
@@ -22,6 +23,8 @@ public class HotelDetailsController {
     }
 
     //TODO : extract HotelManagement for Validation : atk HotelRequest, AddressRequest...
+
+
     @PostMapping("/create_new_hotel")
     public ResponseEntity<HotelManagementResponseDto> addHotelToDataBase(
             @RequestBody @Valid HotelManagementRequestDto dto
@@ -31,6 +34,7 @@ public class HotelDetailsController {
         return ResponseEntity.created(uri).body(saved);
     }
 
+    @PreAuthorize("hasRole('MANAGER')")
     @PutMapping("/update/hotel_details")
     public ResponseEntity<HotelResponseDto> updateHotelByHotelName(@RequestBody HotelsRequestDto dto
             , UriComponentsBuilder uriBuilder){
@@ -39,6 +43,7 @@ public class HotelDetailsController {
         return ResponseEntity.created(uri).body(saved);
     }
 
+    @PreAuthorize("hasRole('MANAGER')")
     @PutMapping("/update/hotel_rooms")
     public ResponseEntity<RoomResponseDto> updateHotelByHotelName(
             @RequestBody RoomRequestDto dto,

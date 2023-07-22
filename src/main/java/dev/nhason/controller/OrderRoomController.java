@@ -15,7 +15,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/p1/order")
+@RequestMapping("/order")
 public class OrderRoomController {
 
     private final OrderRoomService orderRoomService;
@@ -25,7 +25,7 @@ public class OrderRoomController {
                                                               UriComponentsBuilder uriBuilder){
         var saved = orderRoomService.createOrder(dto);
         var uri = uriBuilder
-                .path(("/api/p1/hotels/{id}/address_id"))
+                .path(("/hotels/{id}/address_id"))
                 .buildAndExpand(
                         saved.getHotel().getName(),
                         saved.getRoom().getType(),

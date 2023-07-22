@@ -11,7 +11,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/p1")
+@RequestMapping("/address")
 public class AddressController {
     private final AddressService addressService;
 
@@ -21,7 +21,7 @@ public class AddressController {
                                                                UriComponentsBuilder uriBuilder){
         var saved = addressService.giveAddressToHotel(dto,hotel_id);
         var uri = uriBuilder
-                .path(("/api/p1/hotels/{id}/address_id"))
+                .path(("/hotels/{id}/address_id"))
                 .buildAndExpand(hotel_id,saved.getId())
                 .toUri();
         return ResponseEntity.created(uri).body(saved);

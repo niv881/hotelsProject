@@ -7,6 +7,7 @@ import dev.nhason.utils.ImageInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -23,7 +24,8 @@ public class ImageHotelController {
 
     private  final ImageHotelService imageHotelService;
 
-    @PostMapping
+    @PreAuthorize("hasRole('MANAGER')")
+    @PostMapping("/upload_image")
     public ResponseEntity<ImageUploadResponse> uploadImage(@RequestParam(value = "hotel_name") String hotelName
             , @RequestParam(value = "image") MultipartFile[] files
     , UriComponentsBuilder uriBuilder)  {

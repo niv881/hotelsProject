@@ -3,9 +3,12 @@ package dev.nhason.repository;
 import dev.nhason.entity.OrderRoom;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface OrderRoomRepository extends JpaRepository<OrderRoom,Long> {
-    Optional<OrderRoom>findOrderRoomByHotel_NameIgnoreCaseOrRoom_TypeIgnoreCase(
-            String hotelName,String roomType);
+    Optional<List<OrderRoom>> findAllByRoom_TypeIgnoreCase(String roomType);
+
+
+
 }

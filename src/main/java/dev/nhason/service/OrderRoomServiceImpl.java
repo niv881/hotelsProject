@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -47,12 +48,11 @@ public class OrderRoomServiceImpl implements OrderRoomService {
         String CheckIn = dto.getCheckIn().toString();
         String dateFormat = "yyyy-MM-dd";
 
+        checkExpireOrders(roomC.getType(),dateFormat);
+
         if(isDatePast(CheckIn,dateFormat)){
             throw new BadRequestException(dto.getCheckIn().toString(), "The CheckIn Date is passed .. ");
         }
-
-
-
 
         if (roomC.getCapacity() > 0) {
             makeOrder(dto, hotelE, roomC);
@@ -107,10 +107,33 @@ public class OrderRoomServiceImpl implements OrderRoomService {
         hotelE.setOrder(ordersFromHotel);
         hotelRepository.save(hotelE);
 
-        var ordersFromRoom = roomC.getOrder();
+        var ordersFromRoom = roomC.getOrderRooms();
         ordersFromRoom.add(orderE);
-        roomC.setOrder(ordersFromRoom);
+        roomC.setOrderRooms(ordersFromRoom);
         roomRepository.save(roomC);
+    }
+
+
+    private void checkExpireOrders(String roomType,String dataFormat){
+        List<OrderRoom> orders = orderRoomRepository.findAllByRoom_TypeIgnoreCase(roomType).orElseThrow(
+                ()->  new BadRequestException("this type room doesn't exists ", roomType)
+        );
+
+        orders.forEach(orderRoom -> {
+            var checkOut = orderRoom.getCheckOut().toString();
+
+            if (isDatePast(checkOut,dataFormat)){
+                orders.remove(orderRoom);
+
+                var room  = roomRepository.findRoomByTypeIgnoreCase(roomType).orElseThrow(
+                        () -> new NotFoundException("no found room for this room type", roomType)
+                );
+                room.setOrderRooms(orders);
+                room.setCapacity(room.getCapacity()+1);
+            }
+
+        });
+
     }
 
 

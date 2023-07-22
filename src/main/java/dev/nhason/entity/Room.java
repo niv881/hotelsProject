@@ -31,8 +31,8 @@ public class Room {
     private Hotel hotel;
 
     @OneToMany
-    @JoinColumn(name = "order_id",referencedColumnName = "id")
-    private List<OrderRoom> order;
+    @JoinColumn(name = "order_room_id",referencedColumnName = "id")
+    private List<OrderRoom> orderRooms;
 
 
 }
