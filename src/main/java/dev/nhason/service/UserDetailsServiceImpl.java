@@ -18,8 +18,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 import java.util.Set;
 
 @Service
@@ -37,14 +35,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         val userRole = roleRepository.findByNameIgnoreCase("ROLE_USER")
                 .orElseThrow(() -> new HotelsException("Please contact admin"));
         //2) if email/username exists -> Go Sign in (Exception)
-        val byUser = userRepository.findByUsernameIgnoreCase(dto.getUsername().trim());
-        val byEmail = userRepository.findByEmailIgnoreCase(dto.getEmail().trim());
-
-        if (byEmail.isPresent()) {
-            throw new BadRequestException("email", "Email already exists");
-        } else if (byUser.isPresent()) {
-            throw new BadRequestException("username", "Username already exists");
-        }
+        checkIfUsernameOrEmailAreExists(dto);
 
         //3) val user = new User(... encoded-password )
         var user = dev.nhason.entity.User.builder()
@@ -57,6 +48,27 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         var savedUser = userRepository.save(user);
         return modelMapper.map(savedUser, UserResponseDto.class);
     }
+
+    @Transactional
+    public UserResponseDto signUpManager(SignUpRequestDto dto) {
+        //1) get the user role from role repository:
+        val userRole = roleRepository.findByNameIgnoreCase("ROLE_MANAGER")
+                .orElseThrow(() -> new HotelsException("Please contact admin"));
+        //2) if email/username exists -> Go Sign in (Exception)
+        checkIfUsernameOrEmailAreExists(dto);
+
+        //3) val user = new User(... encoded-password )
+        var user = dev.nhason.entity.User.builder()
+                .id(null)
+                .email(dto.getEmail())
+                .username(dto.getUsername())
+                .password(passwordEncoder.encode(dto.getPassword().trim()))
+                .roles(Set.of(userRole))
+                .build();
+        var savedUser = userRepository.save(user);
+        return modelMapper.map(savedUser, UserResponseDto.class);
+    }
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         var user = userRepository.findByUsernameIgnoreCase(username).orElseThrow(
@@ -66,4 +78,17 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         return new User(user.getUsername(),user.getPassword(),role);
     }
+
+
+    private void checkIfUsernameOrEmailAreExists(SignUpRequestDto dto) {
+        val byUser = userRepository.findByUsernameIgnoreCase(dto.getUsername().trim());
+        val byEmail = userRepository.findByEmailIgnoreCase(dto.getEmail().trim());
+
+        if (byEmail.isPresent()) {
+            throw new BadRequestException("email", "Email already exists");
+        } else if (byUser.isPresent()) {
+            throw new BadRequestException("username", "Username already exists");
+        }
+    }
+
 }

@@ -26,6 +26,7 @@ public class HotelDetailsController {
 
 
     @PostMapping("/create_new_hotel")
+    @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<HotelManagementResponseDto> addHotelToDataBase(
             @RequestBody @Valid HotelManagementRequestDto dto
     , UriComponentsBuilder uriBuilder){

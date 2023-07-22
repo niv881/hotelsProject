@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,20 +24,28 @@ import java.util.Map;
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
-    private final UserDetailsServiceImpl authService;
+    private final UserDetailsServiceImpl userService;
     private  final JWTProvider jwtProvider;
     private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/signup")
     public ResponseEntity<UserResponseDto> signUp(@RequestBody @Valid SignUpRequestDto dto){
-        val response = authService.signUp(dto);
+        val response = userService.signUp(dto);
+
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/signup/manager")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserResponseDto> signUpManager(@RequestBody @Valid SignUpRequestDto dto){
+        val response = userService.signUpManager(dto);
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @PostMapping("/signin")
     public ResponseEntity<Object> signIn(@RequestBody @Valid SignInRequestDto dto){
-        var user = authService.loadUserByUsername(dto.getUsername());
+        var user = userService.loadUserByUsername(dto.getUsername());
         var savedPassword = user.getPassword();
         var givenPassword = dto.getPassword();
         if (passwordEncoder.matches(givenPassword,savedPassword)){
@@ -45,5 +54,9 @@ public class AuthController {
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
+
+
+
+
 
 }
