@@ -10,5 +10,5 @@ public interface ImageDataRepository extends JpaRepository<ImageData,Long> {
     Optional<ImageData> findByName(String name);
 
     List<ImageData> findImageDataByHotel_NameIgnoreCase(String nane);
-    List<ImageData> findAllByHotel_NameIgnoreCase(String name);
+    Optional<List<ImageData>> findAllByHotel_NameIgnoreCase(String name);
 }

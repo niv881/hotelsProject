@@ -2,6 +2,7 @@ package dev.nhason.service;
 
 import dev.nhason.dto.ImageUploadResponse;
 import dev.nhason.entity.ImageData;
+import dev.nhason.error.NotFoundException;
 import dev.nhason.repository.HotelRepository;
 import dev.nhason.repository.ImageDataRepository;
 import dev.nhason.utils.ImageUtil;
@@ -50,7 +51,9 @@ public class ImageHotelServiceImpl implements ImageHotelService {
 
     @Override
     public List<byte[]> getAllHotelImages(String name) {
-        List<ImageData> dbImage = imageDataRepository.findAllByHotel_NameIgnoreCase(name);
+        List<ImageData> dbImage = imageDataRepository.findAllByHotel_NameIgnoreCase(name).orElseThrow(
+                () -> new NotFoundException(name , "no image for this hotel")
+        );
         List<byte[]> hotelImage = dbImage
                 .stream()
                 .map(imageData ->

@@ -1,5 +1,6 @@
 package dev.nhason.dto;
 
+import dev.nhason.utils.ImageInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,5 +15,6 @@ import java.util.List;
 public class HotelManagementResponseDto {
     private HotelResponseDto hotel;
     private AddressResponseDto address;
+    private List<ImageInfo> images;
     private List<RoomResponseDto> rooms;
 }

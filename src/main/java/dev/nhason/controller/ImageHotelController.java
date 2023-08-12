@@ -14,6 +14,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,12 +54,5 @@ public class ImageHotelController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(image);
     }
-    @GetMapping("/{name}")
-    public ResponseEntity<List<ImageInfo>> getImagesByHotelName(@PathVariable("name") String name){
-       List<ImageInfo> images = imageHotelService.getAllHotelImages(name).stream().map(img -> {
-           byte[] image = img.clone();
-           return new ImageInfo(image);
-        }).collect(Collectors.toList());
-       return ResponseEntity.ok(images);
-    }
+
 }

@@ -11,10 +11,13 @@ import dev.nhason.repository.AddressRepository;
 import dev.nhason.repository.HotelRepository;
 import dev.nhason.repository.ImageDataRepository;
 import dev.nhason.repository.RoomRepository;
+import dev.nhason.utils.ImageInfo;
+import dev.nhason.utils.ImageUtil;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -66,10 +69,25 @@ public class HotelManagementImpl implements HotelManagement {
                             .stream()
                             .map(room -> modelMapper.map(room,RoomResponseDto.class)).toList();
 
+                    List<ImageData>  imagesFromDataBase = imageDataRepository.findAllByHotel_NameIgnoreCase(hotel.getName()).orElseThrow(
+                            ()->new NotFoundException(hotel.getName() , "no picture for this hotel")
+                    );
+                    List<ImageInfo> hotelImages = imagesFromDataBase
+                            .stream().map(imageData -> {
+                                byte [] image = ImageUtil.decompressImage(imageData.getImageData()).clone();
+                                Long imageId = imageData.getId();
+                                ImageInfo imageInfo = ImageInfo.builder()
+                                        .image(image)
+                                        .id(imageId)
+                                        .build();
+                                return imageInfo;
+                            }).collect(Collectors.toList());
+
                     return HotelManagementResponseDto.builder()
                           .hotel(modelMapper.map(hotel, HotelResponseDto.class))
                           .address(modelMapper.map(hotel.getAddress(), AddressResponseDto.class))
                           .rooms(rooms)
+                          .images(hotelImages)
                           .build();
                 }).toList();
 
