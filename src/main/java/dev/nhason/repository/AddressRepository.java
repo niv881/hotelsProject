@@ -9,4 +9,6 @@ import java.util.Optional;
 public interface AddressRepository extends JpaRepository<Address,Long> {
         Address findAddressByHotel_Name(String name);
         Optional<Address> findAddressByCity(String city);
+        List<Address> findAll();
+
 }

@@ -12,6 +12,7 @@ import lombok.val;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -48,9 +49,11 @@ public class AuthController {
         var user = userService.loadUserByUsername(dto.getUsername());
         var savedPassword = user.getPassword();
         var givenPassword = dto.getPassword();
+        var role = user.getAuthorities().stream().map(r->new SimpleGrantedAuthority(r.getAuthority())).toList();
+
         if (passwordEncoder.matches(givenPassword,savedPassword)){
             var token = jwtProvider.generateToken(user.getUsername());
-          return ResponseEntity.ok(Map.of("jwt",token));
+          return ResponseEntity.ok(Map.of("jwt",token, "Role",role));
         }
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }

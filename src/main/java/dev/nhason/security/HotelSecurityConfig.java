@@ -45,6 +45,7 @@ public class HotelSecurityConfig {
                 .addFilterBefore(jwtFilter, BasicAuthenticationFilter.class)
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> {
+                    auth.requestMatchers("/auth/signin").permitAll();
                     auth.requestMatchers("/hotels_management/address").permitAll();
                     auth.requestMatchers("/hotels_management/**").authenticated();
                     // TODO : comments for Hotel..

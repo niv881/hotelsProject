@@ -22,7 +22,7 @@ public class SignInRequestDto {
     @Size(min = 8,max = 20)
     @NotNull(message = "password is mandatory")
     @Pattern(
-            regexp = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?\\W).{8,20}$",
+            regexp = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,20}$",
             message = "password must contain at least 8 characters," +
                     " one or more lower case letters, uppercase letter, symbol, digits"
     )

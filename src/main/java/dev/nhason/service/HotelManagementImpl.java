@@ -111,13 +111,12 @@ public class HotelManagementImpl implements HotelManagement {
                     .map(room -> modelMapper.map(room, Room.class)).toList();
             roomE.forEach(room -> room.setHotel(hotelS));
             roomRepository.saveAll(roomE);
-
             var hotel = modelMapper.map(hotelS,HotelResponseDto.class);
             var address = modelMapper.map(addressS,AddressResponseDto.class);
             List<RoomResponseDto> rooms = roomE.stream().map(
                     room -> modelMapper.map(room,RoomResponseDto.class)
             ).toList();
-            //TODO : return something else!
+            hotel.setName(hotelS.getName().trim());
             return HotelManagementResponseDto.builder()
                     .hotel(hotel)
                     .address(address)
