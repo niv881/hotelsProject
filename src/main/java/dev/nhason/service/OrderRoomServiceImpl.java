@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -114,27 +115,41 @@ public class OrderRoomServiceImpl implements OrderRoomService {
     }
 
 
-    private void checkExpireOrders(String roomType,String dataFormat){
+    private void checkExpireOrders(String roomType, String dateFormat) {
         List<OrderRoom> orders = orderRoomRepository.findAllByRoom_TypeIgnoreCase(roomType).orElseThrow(
-                ()->  new BadRequestException("this type room doesn't exists ", roomType)
+                () -> new BadRequestException("this type room doesn't exist", roomType)
         );
 
-        orders.forEach(orderRoom -> {
-            var checkOut = orderRoom.getCheckOut().toString();
+        List<OrderRoom> validOrders = orders.stream()
+                .filter(orderRoom -> !isDatePast(orderRoom.getCheckOut().toString(), dateFormat))
+                .collect(Collectors.toList());
 
-            if (isDatePast(checkOut,dataFormat)){
-                orders.remove(orderRoom);
+        var room = roomRepository.findRoomByTypeIgnoreCase(roomType).orElseThrow(
+                () -> new NotFoundException("no found room for this room type", roomType)
+        );
 
-                var room  = roomRepository.findRoomByTypeIgnoreCase(roomType).orElseThrow(
-                        () -> new NotFoundException("no found room for this room type", roomType)
-                );
-                room.setOrderRooms(orders);
-                room.setCapacity(room.getCapacity()+1);
-            }
+        // Check if any orders were removed (i.e., they had a date in the past)
+        if (validOrders.size() < orders.size()) {
+            // Increase the room's capacity only if some orders were removed
+            room.setCapacity(room.getCapacity() + (orders.size() - validOrders.size()));
+            // Identify the IDs of orders to be removed from the repository
+            List<Long> orderIdsToRemove = orders.stream()
+                    .filter(orderRoom -> !validOrders.contains(orderRoom))
+                    .map(OrderRoom::getId)
+                    .collect(Collectors.toList());
 
-        });
+            // Remove the expired orders from the repository
+            orderRoomRepository.deleteAllById(orderIdsToRemove);
+        }
 
+        // Update the room's orders
+        room.setOrderRooms(validOrders);
+
+        // Save the updated room to the database if needed
+        roomRepository.save(room);
     }
+
+
 
 
 }
