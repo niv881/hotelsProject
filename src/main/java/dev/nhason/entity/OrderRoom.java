@@ -36,5 +36,10 @@ public class OrderRoom {
     @JoinColumn(name = "room_id",referencedColumnName = "id")
     private Room room;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id" ,referencedColumnName = "id")
+    private User user;
+
+
 
 }

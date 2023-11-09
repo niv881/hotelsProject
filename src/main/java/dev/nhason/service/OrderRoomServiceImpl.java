@@ -1,19 +1,20 @@
 package dev.nhason.service;
 
-import dev.nhason.dto.HotelResponseDto;
-import dev.nhason.dto.OrderRoomRequest;
-import dev.nhason.dto.OrderRoomResponse;
-import dev.nhason.dto.RoomResponseDto;
+import dev.nhason.dto.*;
 import dev.nhason.entity.Hotel;
 import dev.nhason.entity.OrderRoom;
 import dev.nhason.entity.Room;
+import dev.nhason.entity.User;
 import dev.nhason.error.BadRequestException;
 import dev.nhason.error.NotFoundException;
 import dev.nhason.repository.HotelRepository;
 import dev.nhason.repository.OrderRoomRepository;
 import dev.nhason.repository.RoomRepository;
+import dev.nhason.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.Conditions;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -28,6 +29,7 @@ public class OrderRoomServiceImpl implements OrderRoomService {
     private final OrderRoomRepository orderRoomRepository;
     private final RoomRepository roomRepository;
     private final HotelRepository hotelRepository;
+    private final UserRepository userRepository;
     private final ModelMapper modelMapper;
 
     @Override
@@ -46,6 +48,10 @@ public class OrderRoomServiceImpl implements OrderRoomService {
                 .orElseThrow(
                         () -> new NotFoundException(dto.getRoomType(), "this type of room doesn't found"));
 
+        var user = userRepository.findByUsernameIgnoreCase(dto.getUserName()).orElseThrow(
+                () -> new NotFoundException("Not found this user ! ")
+        );
+
         String CheckIn = dto.getCheckIn().toString();
         String dateFormat = "yyyy-MM-dd";
 
@@ -56,13 +62,14 @@ public class OrderRoomServiceImpl implements OrderRoomService {
         }
 
         if (roomC.getCapacity() > 0) {
-            makeOrder(dto, hotelE, roomC);
+            makeOrder(dto, hotelE, roomC,user);
             updateCapacity( dto, roomC);
 
             roomRepository.save(roomC);
 
             var hotel = modelMapper.map(hotelE, HotelResponseDto.class);
             var room = modelMapper.map(roomC, RoomResponseDto.class);
+            var userResponse = modelMapper.map(user, UserResponseDto.class);
 
 
             return OrderRoomResponse.builder()
@@ -71,6 +78,7 @@ public class OrderRoomServiceImpl implements OrderRoomService {
                     .hotel(hotel)
                     .room(room)
                     .roomCapacity(dto.getRoomCapacity())
+                    .user(userResponse)
                     .build();
         } else {
             throw new BadRequestException(dto.getRoomType(),"sorry this room type is no available. " +
@@ -93,12 +101,13 @@ public class OrderRoomServiceImpl implements OrderRoomService {
             roomRepository.save(roomC);
     }
 
-    private void makeOrder(OrderRoomRequest dto, Hotel hotelE, Room roomC) {
+    private void makeOrder(OrderRoomRequest dto, Hotel hotelE, Room roomC, User user) {
         var orderE = OrderRoom.builder()
                 .checkIn(dto.getCheckIn())
                 .checkOut(dto.getCheckOut())
                 .hotel(hotelE)
                 .room(roomC)
+                .user(user)
                 .roomCapacity(dto.getRoomCapacity())
                 .build();
         orderRoomRepository.save(orderE);
@@ -124,9 +133,9 @@ public class OrderRoomServiceImpl implements OrderRoomService {
                 .filter(orderRoom -> !isDatePast(orderRoom.getCheckOut().toString(), dateFormat))
                 .collect(Collectors.toList());
 
-        var room = roomRepository.findRoomByTypeIgnoreCase(roomType).orElseThrow(
-                () -> new NotFoundException("no found room for this room type", roomType)
-        );
+        var room = roomRepository.findRoomByTypeIgnoreCase(roomType).stream()
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("no found room for this room type", roomType));
 
         // Check if any orders were removed (i.e., they had a date in the past)
         if (validOrders.size() < orders.size()) {
@@ -148,6 +157,30 @@ public class OrderRoomServiceImpl implements OrderRoomService {
         // Save the updated room to the database if needed
         roomRepository.save(room);
     }
+
+    public List<OrderRoomResponse> findAllOrderByUserName(String userName) {
+        modelMapper.getConfiguration()
+                .setMatchingStrategy(MatchingStrategies.STRICT)
+                .setPropertyCondition(Conditions.isNotNull());
+
+        List<OrderRoom> orders = orderRoomRepository.findAllByUser_UsernameIgnoreCase(userName).orElseThrow(
+                () -> new NotFoundException("No orders found for this user")
+        );
+
+        return orders.stream()
+                .map(orderRoom -> {
+                    OrderRoomResponse orderRoomResponse = modelMapper.map(orderRoom, OrderRoomResponse.class);
+
+                    if (orderRoom.getRoom() != null) {
+                        orderRoomResponse.setRoomCapacity(orderRoom.getRoom().getCapacity());
+                    }
+
+                    return orderRoomResponse;
+                })
+                .collect(Collectors.toList());
+    }
+
+
 
 
 

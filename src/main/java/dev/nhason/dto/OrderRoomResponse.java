@@ -16,4 +16,5 @@ public class OrderRoomResponse {
     private int roomCapacity;
     private HotelResponseDto hotel;
     private RoomResponseDto room;
+    private UserResponseDto user;
 }

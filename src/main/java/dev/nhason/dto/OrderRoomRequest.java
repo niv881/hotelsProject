@@ -23,4 +23,6 @@ public class OrderRoomRequest {
     private String roomType;
     @NotNull(message = "attribute must to be not null !")
     private int roomCapacity;
+    @NotNull
+    private String userName;
 }

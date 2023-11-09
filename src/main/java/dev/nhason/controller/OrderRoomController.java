@@ -7,11 +7,10 @@ import dev.nhason.service.OrderRoomService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -33,6 +32,12 @@ public class OrderRoomController {
                         saved.getCheckOut())
                 .toUri();
         return ResponseEntity.created(uri).body(saved);
+    }
+
+    @GetMapping("/order_details")
+    public ResponseEntity<List<OrderRoomResponse>> getAllOrdersByUserName(@RequestParam (required = false,defaultValue = "",value = "userName") String userName){
+        var orders = orderRoomService.findAllOrderByUserName(userName);
+        return ResponseEntity.ok(orders);
     }
 
 }

@@ -55,7 +55,7 @@ public class AuthController {
             var token = jwtProvider.generateToken(user.getUsername());
           return ResponseEntity.ok(Map.of("jwt",token, "Role",role));
         }
-        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("user name or password wrong try again ");
     }
 
 
