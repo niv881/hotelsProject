@@ -10,5 +10,7 @@ import java.util.Optional;
 public interface OrderRoomRepository extends JpaRepository<OrderRoom,Long> {
     Optional<List<OrderRoom>> findAllByRoom_TypeIgnoreCase(String roomType);
     Optional<List<OrderRoom>> findAllByUser_UsernameIgnoreCase(String userName);
+    Optional<OrderRoom> deleteOrderRoomByOrderNumber(String orderNumber);
+
 
 }

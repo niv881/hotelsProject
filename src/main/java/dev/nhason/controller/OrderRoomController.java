@@ -1,6 +1,7 @@
 package dev.nhason.controller;
 
 
+import dev.nhason.dto.DeleteRoomRequest;
 import dev.nhason.dto.OrderRoomRequest;
 import dev.nhason.dto.OrderRoomResponse;
 import dev.nhason.service.OrderRoomService;
@@ -38,6 +39,12 @@ public class OrderRoomController {
     public ResponseEntity<List<OrderRoomResponse>> getAllOrdersByUserName(@RequestParam (required = false,defaultValue = "",value = "userName") String userName){
         var orders = orderRoomService.findAllOrderByUserName(userName);
         return ResponseEntity.ok(orders);
+    }
+
+    @DeleteMapping
+    public ResponseEntity<String> deleteOrderByOrderNumber(@RequestBody @Valid DeleteRoomRequest deleteRoomRequest){
+        var msg = orderRoomService.deleteOrderRoomByOrderNumber(deleteRoomRequest);
+        return ResponseEntity.ok(msg);
     }
 
 }

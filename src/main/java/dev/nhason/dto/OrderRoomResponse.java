@@ -17,4 +17,5 @@ public class OrderRoomResponse {
     private HotelResponseDto hotel;
     private RoomResponseDto room;
     private UserResponseDto user;
+    private String orderNumber;
 }

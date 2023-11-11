@@ -11,16 +11,18 @@ import dev.nhason.repository.HotelRepository;
 import dev.nhason.repository.OrderRoomRepository;
 import dev.nhason.repository.RoomRepository;
 import dev.nhason.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.Conditions;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,6 +33,8 @@ public class OrderRoomServiceImpl implements OrderRoomService {
     private final HotelRepository hotelRepository;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+
+
 
     @Override
     public OrderRoomResponse createOrder(OrderRoomRequest dto) {
@@ -62,7 +66,8 @@ public class OrderRoomServiceImpl implements OrderRoomService {
         }
 
         if (roomC.getCapacity() > 0) {
-            makeOrder(dto, hotelE, roomC,user);
+
+          var orderNumber =   makeOrder(dto, hotelE, roomC,user);
             updateCapacity( dto, roomC);
 
             roomRepository.save(roomC);
@@ -71,7 +76,6 @@ public class OrderRoomServiceImpl implements OrderRoomService {
             var room = modelMapper.map(roomC, RoomResponseDto.class);
             var userResponse = modelMapper.map(user, UserResponseDto.class);
 
-
             return OrderRoomResponse.builder()
                     .checkIn(dto.getCheckIn())
                     .checkOut(dto.getCheckOut())
@@ -79,6 +83,7 @@ public class OrderRoomServiceImpl implements OrderRoomService {
                     .room(room)
                     .roomCapacity(dto.getRoomCapacity())
                     .user(userResponse)
+                    .orderNumber(orderNumber)
                     .build();
         } else {
             throw new BadRequestException(dto.getRoomType(),"sorry this room type is no available. " +
@@ -101,7 +106,8 @@ public class OrderRoomServiceImpl implements OrderRoomService {
             roomRepository.save(roomC);
     }
 
-    private void makeOrder(OrderRoomRequest dto, Hotel hotelE, Room roomC, User user) {
+    private String makeOrder(OrderRoomRequest dto, Hotel hotelE, Room roomC, User user) {
+        var  orderNumber = generateOrderNumber();
         var orderE = OrderRoom.builder()
                 .checkIn(dto.getCheckIn())
                 .checkOut(dto.getCheckOut())
@@ -109,6 +115,7 @@ public class OrderRoomServiceImpl implements OrderRoomService {
                 .room(roomC)
                 .user(user)
                 .roomCapacity(dto.getRoomCapacity())
+                .orderNumber(orderNumber)
                 .build();
         orderRoomRepository.save(orderE);
 
@@ -121,26 +128,33 @@ public class OrderRoomServiceImpl implements OrderRoomService {
         ordersFromRoom.add(orderE);
         roomC.setOrderRooms(ordersFromRoom);
         roomRepository.save(roomC);
+
+        return orderNumber;
     }
 
 
-    private void checkExpireOrders(String roomType, String dateFormat) {
-        List<OrderRoom> orders = orderRoomRepository.findAllByRoom_TypeIgnoreCase(roomType).orElseThrow(
-                () -> new BadRequestException("this type room doesn't exist", roomType)
-        );
 
+    private void checkExpireOrders(String roomType, String dateFormat) {
+
+
+        // Fetch the room by type
+        Room room = roomRepository.findRoomByTypeIgnoreCase(roomType)
+                .orElseThrow(() -> new NotFoundException("No room found for this room type: " + roomType));
+
+        // Fetch all orders for the given room type
+        List<OrderRoom> orders = orderRoomRepository.findAllByRoom_TypeIgnoreCase(roomType)
+                .orElseThrow(() -> new BadRequestException("This type of room doesn't exist: " + roomType));
+
+        // Filter valid orders based on the check-out date
         List<OrderRoom> validOrders = orders.stream()
                 .filter(orderRoom -> !isDatePast(orderRoom.getCheckOut().toString(), dateFormat))
                 .collect(Collectors.toList());
-
-        var room = roomRepository.findRoomByTypeIgnoreCase(roomType).stream()
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException("no found room for this room type", roomType));
 
         // Check if any orders were removed (i.e., they had a date in the past)
         if (validOrders.size() < orders.size()) {
             // Increase the room's capacity only if some orders were removed
             room.setCapacity(room.getCapacity() + (orders.size() - validOrders.size()));
+
             // Identify the IDs of orders to be removed from the repository
             List<Long> orderIdsToRemove = orders.stream()
                     .filter(orderRoom -> !validOrders.contains(orderRoom))
@@ -157,6 +171,7 @@ public class OrderRoomServiceImpl implements OrderRoomService {
         // Save the updated room to the database if needed
         roomRepository.save(room);
     }
+
 
     public List<OrderRoomResponse> findAllOrderByUserName(String userName) {
         modelMapper.getConfiguration()
@@ -181,7 +196,28 @@ public class OrderRoomServiceImpl implements OrderRoomService {
     }
 
 
+    private String generateOrderNumber() {
+        // Generate a random 6-digit order number
+        Random random = new Random();
+        int randomNumber = 100_000 + random.nextInt(900_000);
+        return String.valueOf(randomNumber);
+    }
+    @Transactional
+    public String deleteOrderRoomByOrderNumber(DeleteRoomRequest deleteRoomRequest) {
+        var orderNum = deleteRoomRequest.getOrderNum();
+        orderRoomRepository.deleteOrderRoomByOrderNumber(orderNum).orElseThrow(
+                () -> new NotFoundException("this order number not in the system." +
+                        " contact with the manager "));
+        var rooms = roomRepository.findRoomsByHotel_Name(deleteRoomRequest.getHotelName())
+                .orElseThrow(()-> new NotFoundException("No found this Room !"));
+       var room = rooms.stream()
+                .filter(r -> r.getType().equals(deleteRoomRequest.getRoomType()))
+                .findFirst().orElseThrow(() -> new NotFoundException("No found this Room !"));
+       room.setCapacity(room.getCapacity()+1);
+       roomRepository.save(room);
 
+        return "The Order " + orderNum + " delete!";
+    }
 
 
 
