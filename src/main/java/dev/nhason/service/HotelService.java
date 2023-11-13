@@ -5,4 +5,5 @@ import dev.nhason.dto.HotelsRequestDto;
 
 public interface HotelService {
     HotelResponseDto createHotel(HotelsRequestDto hotelsRequestDto);
+    Boolean hotelExist(String hotelsName);
 }

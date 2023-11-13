@@ -20,4 +20,8 @@ public class HotelServiceImpl implements HotelService {
         var saved = hotelRepository.save(entity);
         return modelMapper.map(saved, HotelResponseDto.class);
     }
+
+    public Boolean hotelExist(String hotelName){
+        return hotelRepository.findHotelByNameIgnoreCase(hotelName).isPresent();
+    }
 }

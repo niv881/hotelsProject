@@ -29,7 +29,7 @@ public class ImageHotelController {
     @PostMapping("/upload_image")
     public ResponseEntity<ImageUploadResponse> uploadImage(@RequestParam(value = "hotel_name") String hotelName
             , @RequestParam(value = "image") MultipartFile[] files
-    , UriComponentsBuilder uriBuilder)  {
+            , UriComponentsBuilder uriBuilder)  {
         String message = "";
         var uri = uriBuilder.path("/image/upload").buildAndExpand(files).toUri();
         try{

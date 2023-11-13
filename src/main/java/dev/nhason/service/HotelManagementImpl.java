@@ -100,21 +100,38 @@ public class HotelManagementImpl implements HotelManagement {
 
     @Override
     public HotelManagementResponseDto createHotel(HotelManagementRequestDto dto) {
-        if (!checkIfHotelExists(dto.getHotel().getName())){
-            var hotelE = modelMapper.map(dto.getHotel(),Hotel.class);
-            var hotelS = hotelRepository.save(hotelE);
-            var addressE = modelMapper.map(dto.getAddress(),Address.class);
+        if (!checkIfHotelExists(dto.getHotel().getName())) {
+            var hotelE = modelMapper.map(dto.getHotel(), Hotel.class);
+            var addressE = modelMapper.map(dto.getAddress(), Address.class);
+
+            // Save Address first
             var addressS = addressRepository.save(addressE);
-            addressS.setHotel(hotelS);
+
+            // Set the reference to Hotel in Address
+            addressS.setHotel(hotelE);
+
+            // Set the reference to Address in Hotel
+            hotelE.setAddress(addressS);
+
+            // Save Hotel
+            var hotelS = hotelRepository.save(hotelE);
+
+            // Now, save Address again to update the reference in the database
+            addressRepository.save(addressS);
+
             List<Room> roomE = dto.getRooms()
                     .stream()
                     .map(room -> modelMapper.map(room, Room.class)).toList();
+
             roomE.forEach(room -> room.setHotel(hotelS));
+
+            // Save Rooms
             roomRepository.saveAll(roomE);
-            var hotel = modelMapper.map(hotelS,HotelResponseDto.class);
-            var address = modelMapper.map(addressS,AddressResponseDto.class);
+
+            var hotel = modelMapper.map(hotelS, HotelResponseDto.class);
+            var address = modelMapper.map(addressS, AddressResponseDto.class);
             List<RoomResponseDto> rooms = roomE.stream().map(
-                    room -> modelMapper.map(room,RoomResponseDto.class)
+                    room -> modelMapper.map(room, RoomResponseDto.class)
             ).toList();
             hotel.setName(hotelS.getName().trim());
             return HotelManagementResponseDto.builder()
@@ -122,11 +139,11 @@ public class HotelManagementImpl implements HotelManagement {
                     .address(address)
                     .rooms(rooms)
                     .build();
-        }else {
+        } else {
             throw new BadRequestException(dto.getHotel().getName());
         }
-
     }
+
 
 //    PUT METHODS :
 
@@ -182,5 +199,6 @@ public class HotelManagementImpl implements HotelManagement {
         return modelMapper.map(saved,HotelResponseDto.class);
 
     }
+
 
 }
