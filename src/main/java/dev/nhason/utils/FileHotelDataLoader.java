@@ -48,7 +48,18 @@ public class FileHotelDataLoader {
     private static HotelManagementRequestDto createHotelDtoFromJson(JsonNode hotelNode) {
         JsonNode hotelDetails = hotelNode.path("hotel");
         JsonNode addressDetails = hotelNode.path("address");
-        JsonNode roomDetails = hotelNode.path("rooms").get(0); // Assuming there is only one room in the array
+        JsonNode roomsArray = hotelNode.path("rooms");
+
+        List<RoomRequestDto> roomDtos = new ArrayList<>();
+
+        for (JsonNode roomNode : roomsArray) {
+            RoomRequestDto roomDto = RoomRequestDto.builder()
+                    .type(roomNode.path("type").asText())
+                    .price(roomNode.path("price").asDouble())
+                    .capacity(roomNode.path("capacity").asInt())
+                    .build();
+            roomDtos.add(roomDto);
+        }
 
         return HotelManagementRequestDto.builder()
                 .hotel(HotelsRequestDto.builder()
@@ -63,21 +74,14 @@ public class FileHotelDataLoader {
                         .street(addressDetails.path("street").asText())
                         .streetNumber(addressDetails.path("streetNumber").asText())
                         .build())
-                .rooms(List.of(
-                        RoomRequestDto.builder()
-                                .type(roomDetails.path("type").asText())
-                                .price(roomDetails.path("price").asDouble())
-                                .capacity(roomDetails.path("capacity").asInt())
-                                .build()
-                ))
+                .rooms(roomDtos)
                 .build();
     }
 
-    public static MultipartFile[] loadImagesForHotel(String hotelName) {
+
+    public static MultipartFile[] loadImagesForHotel(String hotelName,String filePath,String imagePath) {
         try {
-            // Logic to read image data from the file based on the hotelName
-            String imagePath = "C:\\Users\\Niv\\Documents\\data hotels project\\hotelsData.json";
-            File file = new File(imagePath);
+            File file = new File(filePath);
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode hotelData = objectMapper.readTree(file);
 
@@ -96,7 +100,8 @@ public class FileHotelDataLoader {
                 List<MultipartFile> imageFiles = new ArrayList<>();
                 for (JsonNode imageNode : targetHotelNode.path("images")) {
                     String fileName = imageNode.path("fileName").asText();
-                    byte[] imageDataBytes = Files.readAllBytes(Paths.get("C:\\Users\\Niv\\Documents\\data hotels project\\" + hotelName + "\\" + fileName));
+                    String caption = imageNode.path("caption").asText();
+                    byte[] imageDataBytes = Files.readAllBytes(Paths.get(imagePath,caption,fileName));
                     MultipartFile multipartFile = new MockMultipartFile(fileName, fileName, "image/jpeg", imageDataBytes);
                     imageFiles.add(multipartFile);
                 }
@@ -109,7 +114,6 @@ public class FileHotelDataLoader {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            // Handle the exception (e.g., log an error, throw a custom exception)
             return null;
         }
     }

@@ -2,6 +2,7 @@ package dev.nhason;
 
 import dev.nhason.dto.HotelManagementRequestDto;
 import dev.nhason.dto.ImageUploadResponse;
+import dev.nhason.error.BadRequestException;
 import dev.nhason.service.HotelManagement;
 import dev.nhason.service.HotelService;
 import dev.nhason.service.ImageHotelService;
@@ -33,16 +34,14 @@ public class HotelsProjectApplication{
     public CommandLineRunner initDatabase() {
         return args -> {
             String filePath = "C:\\Users\\Niv\\Documents\\data hotels project\\hotelsData.json";
+            String imagePath = "C:\\Users\\Niv\\Documents\\data hotels project\\assets";
             List<HotelManagementRequestDto> hotelData = loadHotelDataFromFile(filePath);
 
             for (HotelManagementRequestDto hotelDto : hotelData) {
                 if (!hotelService.hotelExist(hotelDto.getHotel().getName())) {
-                    // Hotel with this name does not exist, add it to the database
                     hotelManagement.createHotel(hotelDto);
-                    System.out.println("Hotel Name: " + hotelDto.getHotel().getName());
-                    // Print other details as needed
-                    MultipartFile[] images = loadImagesForHotel(hotelDto.getHotel().getName());
-                    String message = "";
+                    MultipartFile[] images = loadImagesForHotel(hotelDto.getHotel().getName(),filePath,imagePath);
+
                     try{
                         List<String> filesName = new ArrayList<>();
                         Arrays.asList(images)
@@ -51,9 +50,8 @@ public class HotelsProjectApplication{
                                     imageHotelService.uploadImage(file,hotelDto.getHotel().getName());
                                     filesName.add(file.getOriginalFilename());
                                 });
-                        message = "Uploaded the files successfully: " + filesName;
                     }catch (Exception e) {
-                        message = "Fail to upload files!";
+                        new BadRequestException("Bad Requests : "+e);
                     }
 
 
