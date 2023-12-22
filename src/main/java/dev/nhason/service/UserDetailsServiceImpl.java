@@ -69,6 +69,26 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         return modelMapper.map(savedUser, UserResponseDto.class);
     }
 
+    @Transactional
+    public UserResponseDto signUpAdmin(SignUpRequestDto dto) {
+        //1) get the user role from role repository:
+        val userRole = roleRepository.findByNameIgnoreCase("ROLE_ADMIN")
+                .orElseThrow(() -> new HotelsException("Please contact admin"));
+        //2) if email/username exists -> Go Sign in (Exception)
+        checkIfUsernameOrEmailAreExists(dto);
+
+        //3) val user = new User(... encoded-password )
+        var user = dev.nhason.entity.User.builder()
+                .id(null)
+                .email(dto.getEmail())
+                .username(dto.getUsername())
+                .password(passwordEncoder.encode(dto.getPassword().trim()))
+                .roles(Set.of(userRole))
+                .build();
+        var savedUser = userRepository.save(user);
+        return modelMapper.map(savedUser, UserResponseDto.class);
+    }
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         var user = userRepository.findByUsernameIgnoreCase(username).orElseThrow(
@@ -88,6 +108,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             throw new BadRequestException("email", "Email already exists");
         } else if (byUser.isPresent()) {
             throw new BadRequestException("username", "Username already exists");
+        }
+    }
+
+    public boolean checkIfUserExist(String user){
+        val byUser = userRepository.findByUsernameIgnoreCase(user.trim());
+        if (byUser.isPresent()){
+            return true;
+        }else {
+            return false;
         }
     }
 

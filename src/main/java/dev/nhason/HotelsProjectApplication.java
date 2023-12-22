@@ -2,10 +2,12 @@ package dev.nhason;
 
 import dev.nhason.dto.HotelManagementRequestDto;
 import dev.nhason.dto.ImageUploadResponse;
+import dev.nhason.dto.SignUpRequestDto;
 import dev.nhason.error.BadRequestException;
 import dev.nhason.service.HotelManagement;
 import dev.nhason.service.HotelService;
 import dev.nhason.service.ImageHotelService;
+import dev.nhason.service.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -27,12 +29,44 @@ public class HotelsProjectApplication{
     private final HotelService hotelService;
     private final HotelManagement hotelManagement;
     private final ImageHotelService imageHotelService;
+    private final UserDetailsServiceImpl userDetailsServiceImpl;
+
     public static void main(String[] args) {
         SpringApplication.run(HotelsProjectApplication.class, args);
     }
     @Bean
     public CommandLineRunner initDatabase() {
         return args -> {
+            if (!userDetailsServiceImpl.checkIfUserExist("defaultUser") ||
+                    !userDetailsServiceImpl.checkIfUserExist("defaultManager") ||
+            !userDetailsServiceImpl.checkIfUserExist("defaultAdmin")) {
+                SignUpRequestDto defaultUserDto = new SignUpRequestDto();
+                defaultUserDto.setUsername("defaultUser");
+                defaultUserDto.setEmail("defaultUser@example.com");
+                defaultUserDto.setPassword("12345678Aa");
+
+                userDetailsServiceImpl.signUp(defaultUserDto);
+
+                SignUpRequestDto defaultManagerDto = new SignUpRequestDto();
+                defaultManagerDto.setUsername("defaultManager");
+                defaultManagerDto.setEmail("defaultManager@example.com");
+                defaultManagerDto.setPassword("12345678Aa");
+
+                userDetailsServiceImpl.signUpManager(defaultManagerDto);
+
+                SignUpRequestDto defaultAdminDto = new SignUpRequestDto();
+                defaultAdminDto.setUsername("defaultAdmin");
+                defaultAdminDto.setEmail("defaultAdmin@example.com");
+                defaultAdminDto.setPassword("12345678Aa");
+
+                userDetailsServiceImpl.signUpAdmin(defaultAdminDto);
+
+                System.out.println(" All the Default user created successfully.");
+            } else {
+                System.out.println("Default user already exists. Skipping creation.");
+            }
+
+
             String filePath = "C:\\Users\\Niv\\Documents\\data hotels project\\hotelsData.json";
             String imagePath = "C:\\Users\\Niv\\Documents\\data hotels project\\assets";
             List<HotelManagementRequestDto> hotelData = loadHotelDataFromFile(filePath);
