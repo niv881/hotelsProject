@@ -1,7 +1,6 @@
 package dev.nhason;
 
 import dev.nhason.dto.HotelManagementRequestDto;
-import dev.nhason.dto.ImageUploadResponse;
 import dev.nhason.dto.SignUpRequestDto;
 import dev.nhason.error.BadRequestException;
 import dev.nhason.service.HotelManagement;
@@ -13,7 +12,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
@@ -67,8 +65,8 @@ public class HotelsProjectApplication{
             }
 
 
-            String filePath = "C:\\Users\\Niv\\Documents\\data hotels project\\hotelsData.json";
-            String imagePath = "C:\\Users\\Niv\\Documents\\data hotels project\\assets";
+            String filePath = "your path to the data hotels project file";
+            String imagePath = "your path to the data hotels project assets file";
             List<HotelManagementRequestDto> hotelData = loadHotelDataFromFile(filePath);
 
             for (HotelManagementRequestDto hotelDto : hotelData) {
