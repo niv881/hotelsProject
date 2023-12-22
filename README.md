@@ -12,7 +12,7 @@ Welcome to LookingApp, where luxury meets affordability in the heart
 
 after you clone this project keep in mind to change some thing..
 
-* in [application.properties]([https://website-name.com](https://github.com/niv881/hotelsProject/blob/master/src/main/resources/application.properties)  file you need to add your user and password to build the database in your mySql see image for details ..   
+* in [application.properties](https://github.com/niv881/hotelsProject/blob/master/src/main/resources/application.properties)  file you need to add your user and password to build the database in your mySql see image for details ..   
   ![applicationProperties](https://github.com/niv881/hotelsProject/assets/111022872/e581f164-92c7-4993-a002-97fdb71e33cb)
 
 * the second thing you need to add in HotelsProjectApplication.java the path to dataHotel project in your computer. make sure you do this after you cline the front project ! .
